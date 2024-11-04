@@ -3,4 +3,5 @@ rootProject.name = 'TaskFlow'
 include 'service-registry'
 include 'ms-gateway'
 include 'lib'
+include 'ms-authentication'
 
