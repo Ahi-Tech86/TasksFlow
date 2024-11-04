@@ -1,1 +1,3 @@
 rootProject.name = 'TaskFlow'
+
+include 'service-registry'
