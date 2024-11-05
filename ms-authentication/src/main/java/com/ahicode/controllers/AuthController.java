@@ -1,6 +1,6 @@
 package com.ahicode.controllers;
 
-import com.ahicode.dto.ConfirmRegisterRequest;
+import com.ahicode.dto.ConfirmationRegisterRequest;
 import com.ahicode.dto.SignInRequest;
 import com.ahicode.dto.SignUpRequest;
 import com.ahicode.dto.UserDto;
@@ -50,8 +50,8 @@ public class AuthController {
                     @ApiResponse(responseCode = "500", description = "Error while serializing message")
             }
     )
-    public ResponseEntity<UserDto> confirmRegister(@RequestBody ConfirmRegisterRequest confirmRegisterRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.confirm(confirmRegisterRequest));
+    public ResponseEntity<UserDto> confirmRegister(@RequestBody ConfirmationRegisterRequest confirmationRegisterRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.confirm(confirmationRegisterRequest));
     }
 
     @PostMapping("/login")

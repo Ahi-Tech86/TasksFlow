@@ -14,12 +14,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConfirmRegisterRequest {
+public class ConfirmationRegisterRequest {
     @NotNull @Email
     @Schema(description = "User's email", example = "example@mail.com")
     private String email;
     @NotNull @Max(6)
-    @JsonProperty("confirm_code")
-    @Schema(description = "The confirm code that was sent to the user's email", example = "123456")
-    private String confirmCode;
+    @JsonProperty("confirmation_code")
+    @Schema(description = "The confirmation code that was sent to the user's email", example = "123456")
+    private String confirmationCode;
 }
