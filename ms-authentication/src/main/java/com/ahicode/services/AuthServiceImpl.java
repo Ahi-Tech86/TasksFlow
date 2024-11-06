@@ -73,6 +73,7 @@ public class AuthServiceImpl implements AuthService {
         String confirmationCode = confirmationRegisterRequest.getConfirmationCode();
 
         TemporaryUserDto temporaryUserDto = redisTemplate.opsForValue().get(email);
+        log.info("" + temporaryUserDto);
 
         if (!confirmationCode.equals(temporaryUserDto.getConfirmationCode())) {
             log.error("Attempting to activate an account with an incorrect confirmation code to email {}", email);

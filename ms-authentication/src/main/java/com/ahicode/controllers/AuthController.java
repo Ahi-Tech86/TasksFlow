@@ -40,7 +40,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.register(signUpRequest));
     }
 
-    @PostMapping("/activate")
+    @PostMapping("/confirmRegister")
     @Operation(
             summary = "Confirm and register user",
             description = "Receiving confirm code for register, register user and create account",

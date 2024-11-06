@@ -28,8 +28,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final Set<String> ALLOWED_PATHS = Set.of(
             "/api/v1/auth/login",
-            "/api/v1/auth/activate",
             "/api/v1/auth/register",
+            "/api/v1/auth/confirmRegister",
             "/webjars",
             "/favicon.ico",
             "/v3/api-docs",
