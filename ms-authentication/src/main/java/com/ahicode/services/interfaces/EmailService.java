@@ -1,4 +1,4 @@
-package com.ahicode.services;
+package com.ahicode.services.interfaces;
 
 public interface EmailService {
     void sendConfirmationCode(String to, String confirmationCode);

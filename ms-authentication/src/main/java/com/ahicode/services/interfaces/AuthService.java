@@ -1,4 +1,4 @@
-package com.ahicode.services;
+package com.ahicode.services.interfaces;
 
 import com.ahicode.dto.ConfirmationRegisterRequest;
 import com.ahicode.dto.SignInRequest;

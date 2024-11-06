@@ -5,6 +5,7 @@ import com.ahicode.exceptions.AppException;
 import com.ahicode.factories.TemporaryUserDtoFactory;
 import com.ahicode.factories.UserDtoFactory;
 import com.ahicode.factories.UserEntityFactory;
+import com.ahicode.services.interfaces.AuthService;
 import com.ahicode.storage.entities.UserEntity;
 import com.ahicode.storage.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -27,6 +27,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserDtoFactory dtoFactory;
     private final UserRepository repository;
+    private final TokenServiceImpl tokenService;
     private final EmailServiceImpl emailService;
     private final UserEntityFactory entityFactory;
     private final PasswordEncoder passwordEncoder;
@@ -83,6 +84,9 @@ public class AuthServiceImpl implements AuthService {
 
         UserEntity savedUser = repository.saveAndFlush(user);
         log.info("User with email {} was successfully saved", email);
+
+        tokenService.createAndSaveToken(user);
+        log.info("Refresh token for {} user was successfully saved", email);
 
         return dtoFactory.makeUserDto(savedUser);
     }
