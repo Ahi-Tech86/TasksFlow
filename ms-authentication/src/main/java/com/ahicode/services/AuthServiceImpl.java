@@ -1,6 +1,7 @@
 package com.ahicode.services;
 
 import com.ahicode.dto.*;
+import com.ahicode.enums.AppRole;
 import com.ahicode.exceptions.AppException;
 import com.ahicode.factories.TemporaryUserDtoFactory;
 import com.ahicode.factories.UserDtoFactory;
@@ -8,8 +9,9 @@ import com.ahicode.factories.UserEntityFactory;
 import com.ahicode.services.interfaces.AuthService;
 import com.ahicode.storage.entities.UserEntity;
 import com.ahicode.storage.repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,9 +24,9 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    private final JwtServiceImpl jwtService;
     private final UserDtoFactory dtoFactory;
     private final UserRepository repository;
     private final TokenServiceImpl tokenService;
@@ -33,7 +35,33 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TemporaryUserDtoFactory temporaryUserDtoFactory;
 
+    private final RedisTemplate<String, Integer> integerRedisTemplate;
     private final RedisTemplate<String, TemporaryUserDto> redisTemplate;
+
+    @Autowired
+    public AuthServiceImpl(
+            JwtServiceImpl jwtService,
+            UserDtoFactory dtoFactory,
+            UserRepository repository,
+            TokenServiceImpl tokenService,
+            EmailServiceImpl emailService,
+            UserEntityFactory entityFactory,
+            PasswordEncoder passwordEncoder,
+            TemporaryUserDtoFactory temporaryUserDtoFactory,
+            @Qualifier("redisTemplate") RedisTemplate<String, TemporaryUserDto> redisTemplate,
+            @Qualifier("integerRedisTemplate") RedisTemplate<String, Integer> integerRedisTemplate
+    ) {
+        this.jwtService = jwtService;
+        this.dtoFactory = dtoFactory;
+        this.repository = repository;
+        this.tokenService = tokenService;
+        this.emailService = emailService;
+        this.entityFactory = entityFactory;
+        this.passwordEncoder = passwordEncoder;
+        this.temporaryUserDtoFactory = temporaryUserDtoFactory;
+        this.redisTemplate = redisTemplate;
+        this.integerRedisTemplate = integerRedisTemplate;
+    }
 
     @Override
     public String register(SignUpRequest signUpRequest) {
@@ -93,7 +121,47 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public List<Object> login(SignInRequest signInRequest) {
-        return List.of();
+        List<Object> response = new ArrayList<>();
+        String email = signInRequest.getEmail();
+
+        String failedLoginKey = "failedLogin:" + email;
+        String lockKey = "locked:" + email;
+
+        if (isLockedLogin(lockKey)) {
+            log.info("Attempting to log into your account {} when the limit of attempts has been exceeded", email);
+            throw new AppException(
+                    "Due to an incorrect password entry, we have temporarily blocked you from " +
+                    "logging into your account. Come back later", HttpStatus.BAD_REQUEST
+            );
+        }
+
+        UserEntity user = isUserExistsByEmail(email);
+        String nickname = user.getNickname();
+
+        if (passwordEncoder.matches(signInRequest.getPassword(), user.getPassword())) {
+            integerRedisTemplate.delete(failedLoginKey);
+
+            Long userId = user.getId();
+            AppRole role = user.getRole();
+            UserDto userDto = dtoFactory.makeUserDto(user);
+
+            String accessToken = jwtService.generateAccessToken(userId, nickname, role);
+            String refreshToken = jwtService.generateRefreshToken(userId, nickname, role);
+
+            response.add(userDto);
+            response.add(accessToken);
+            response.add(refreshToken);
+
+            log.info("Successful login to {} account", email);
+            return response;
+        } else {
+            handleFailedLogin(failedLoginKey, lockKey);
+
+            log.error("Attempt to log with incorrect password to {} account", email);
+            throw new AppException(
+                    "Incorrect password", HttpStatus.UNAUTHORIZED
+            );
+        }
     }
 
     private String generateCode() {
@@ -128,12 +196,43 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    private boolean isLockedLogin(String lockKey) {
+        Boolean isLocked = integerRedisTemplate.hasKey(lockKey);
+
+        return isLocked != null && isLocked;
+    }
+
     private void isNicknameUniqueness(String nickname) {
         Optional<UserEntity> optionalUser = repository.findByNickname(nickname);
 
         if (optionalUser.isPresent()) {
             log.error("Attempt to with an existing nickname {}", nickname);
             throw new AppException(String.format("User with nickname %s is already exists", nickname), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private UserEntity isUserExistsByEmail(String email) {
+        Optional<UserEntity> optionalUser = repository.findByEmail(email);
+
+        if (optionalUser.isPresent()) {
+            return optionalUser.get();
+        } else {
+            log.error("Attempt to log into an account with non-existent email {}", email);
+            throw new AppException(String.format("User with email %s doesn't exists", email), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    private void handleFailedLogin(String failedLoginKey, String lockKey) {
+        Integer failedAttempts = integerRedisTemplate.opsForValue().get(failedLoginKey);
+
+        if (failedAttempts == null) {
+            integerRedisTemplate.opsForValue().set(failedLoginKey, 1);
+        } else {
+            integerRedisTemplate.opsForValue().set(failedLoginKey, failedAttempts + 1);
+
+            if (failedAttempts % 3 == 2) {
+                integerRedisTemplate.opsForValue().set(lockKey, 5, 5, TimeUnit.MINUTES);
+            }
         }
     }
 }
