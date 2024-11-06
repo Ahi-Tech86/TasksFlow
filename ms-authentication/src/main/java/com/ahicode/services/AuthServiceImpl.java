@@ -15,9 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.lang.reflect.Array;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -73,7 +72,6 @@ public class AuthServiceImpl implements AuthService {
         String confirmationCode = confirmationRegisterRequest.getConfirmationCode();
 
         TemporaryUserDto temporaryUserDto = redisTemplate.opsForValue().get(email);
-        log.info("" + temporaryUserDto);
 
         if (!confirmationCode.equals(temporaryUserDto.getConfirmationCode())) {
             log.error("Attempting to activate an account with an incorrect confirmation code to email {}", email);
@@ -94,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
         return List.of();
     }
 
-    public String generateCode() {
+    private String generateCode() {
         Random random = new Random();
 
         int number = 1 + random.nextInt(1000000);
