@@ -6,8 +6,11 @@ plugins {
 ext {
     jjwtVersion = '0.11.5'
     junitVersion = '5.7.0'
+    dotenvVersion = '5.2.2'
     mockitoVersion = '3.6.28'
     openApiVersion = '2.0.2'
+    restAssuredVersion = '5.3.2'
+    testcontainersVersion = '1.17.3'
 }
 
 // Spring Boot dependencies
@@ -42,10 +45,10 @@ dependencies {
 dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    implementation 'io.github.cdimascio:java-dotenv:5.2.2'
     implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
     implementation "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
     implementation "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+    implementation "io.github.cdimascio:java-dotenv:${dotenvVersion}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
 }
 
@@ -53,8 +56,11 @@ dependencies {
 dependencies {
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'com.redis:testcontainers-redis:2.2.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation "org.mockito:mockito-core:${mockitoVersion}"
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation "io.rest-assured:rest-assured:${restAssuredVersion}"
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
 }

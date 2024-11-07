@@ -19,7 +19,7 @@ public class EncryptionServiceImpl implements EncryptionService {
 
     @Value("${application.security.encryption.secret-key}")
     private String stringSecretKey;
-
+    
     private SecretKeySpec secretKey;
     private IvParameterSpec ivParameterSpec;
 
