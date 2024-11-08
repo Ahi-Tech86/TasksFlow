@@ -19,5 +19,8 @@ public class GatewayConfig {
                         .uri(authServiceUrl)
                 )
                 .build();
+
+        //    .route("auth_service", r -> r.path("/api/v1/auth/**")
+        //           .uri("lb://YOUR-SERVICE-NAME")) for Eureka
     }
 }

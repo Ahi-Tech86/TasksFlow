@@ -8,6 +8,8 @@ ext {
     junitVersion = '5.7.0'
     mockitoVersion = '3.6.28'
     openApiVersion = '2.0.2'
+    restAssuredVersion = '5.3.2'
+    testcontainersVersion = '1.17.3'
 }
 
 // Spring Boot dependencies
@@ -52,8 +54,11 @@ dependencies {
 dependencies {
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'com.redis:testcontainers-redis:2.2.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation "org.mockito:mockito-core:${mockitoVersion}"
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation "io.rest-assured:rest-assured:${restAssuredVersion}"
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
 }
