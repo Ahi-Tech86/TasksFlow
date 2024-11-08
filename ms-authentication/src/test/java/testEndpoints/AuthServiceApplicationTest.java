@@ -2,8 +2,9 @@ package testEndpoints;
 
 import com.ahicode.AuthServiceRunner;
 import com.ahicode.dto.*;
+import com.ahicode.dtos.ErrorDto;
+import com.ahicode.dtos.ValidationErrorDto;
 import com.ahicode.factories.UserEntityFactory;
-import com.ahicode.storage.entities.UserEntity;
 import com.ahicode.storage.repositories.UserRepository;
 import com.redis.testcontainers.RedisContainer;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -106,6 +107,81 @@ public class AuthServiceApplicationTest {
     }
 
     @Test
+    void shouldGetEmailErrorValidation() {
+        SignUpRequest signUpRequest = SignUpRequest.builder()
+                .email("example1mail.com")
+                .nickname("nickname")
+                .firstname("Firstname")
+                .lastname("Lastname")
+                .password("1")
+                .build();
+
+        ValidationErrorDto errorDto = RestAssured.given()
+                .contentType("application/json")
+                .body(signUpRequest)
+                .when()
+                .post("/api/v1/auth/register")
+                .then()
+                .log().all()
+                .statusCode(400)
+                .extract().as(ValidationErrorDto.class);
+
+        assertNotNull(errorDto);
+        assertEquals(errorDto.getMessage(), "Validation failed");
+        assertEquals(errorDto.getErrors().get("email"), "Email should be valid");
+    }
+
+    @Test
+    void shouldGetEmailLengthValidationError() {
+        SignUpRequest signUpRequest = SignUpRequest.builder()
+                .email("veryveryveryveryveryveryveryveryveryveryveryveryveryveryverylong@mail.com")
+                .nickname("nickname")
+                .firstname("Firstname")
+                .lastname("Lastname")
+                .password("1")
+                .build();
+
+        ValidationErrorDto errorDto = RestAssured.given()
+                .contentType("application/json")
+                .body(signUpRequest)
+                .when()
+                .post("/api/v1/auth/register")
+                .then()
+                .log().all()
+                .statusCode(400)
+                .extract().as(ValidationErrorDto.class);
+
+        assertNotNull(errorDto);
+        assertEquals(errorDto.getMessage(), "Validation failed");
+        assertEquals(errorDto.getErrors().get("email"), "Email must be between 5 and 50 characters");
+    }
+
+    @Test
+    void shouldGetPasswordErrorValidation() {
+        SignUpRequest signUpRequest = SignUpRequest.builder()
+                .email("example@mail.com")
+                .nickname("nickname")
+                .firstname("Firstname")
+                .lastname("Lastname")
+                .password("")
+                .build();
+
+        ValidationErrorDto errorDto = RestAssured.given()
+                .contentType("application/json")
+                .body(signUpRequest)
+                .when()
+                .post("/api/v1/auth/register")
+                .then()
+                .log().all()
+                .statusCode(400)
+                .extract().as(ValidationErrorDto.class);
+
+        assertNotNull(errorDto);
+        assertEquals(errorDto.getMessage(), "Validation failed");
+        assertEquals(errorDto.getErrors().get("password"), "Password is mandatory");
+    }
+
+    @Test
     void shouldConfirmRegister() {
         ConfirmationRegisterRequest confirmationRegisterRequest = ConfirmationRegisterRequest.builder()
                 .email("example@mail.com")
@@ -161,5 +237,26 @@ public class AuthServiceApplicationTest {
         assertNotNull(refreshToken, "Refresh token should not be null");
         assertFalse(accessToken.isEmpty(), "Access token should not be empty");
         assertFalse(refreshToken.isEmpty(), "Refresh token should not be empty");
+    }
+
+    @Test
+    void shouldFailLogin() {
+        SignInRequest signInRequest = SignInRequest.builder()
+                .email("example@mail.com")
+                .password("2")
+                .build();
+
+        ErrorDto errorDto = RestAssured.given()
+                .contentType("application/json")
+                .body(signInRequest)
+                .when()
+                .post("/api/v1/auth/login")
+                .then()
+                .log().all()
+                .statusCode(401)
+                .extract().as(ErrorDto.class);
+
+        assertNotNull(errorDto);
+        assertEquals(errorDto.getMessage(), "Incorrect password");
     }
 }
