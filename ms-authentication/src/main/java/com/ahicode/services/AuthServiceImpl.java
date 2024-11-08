@@ -146,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
             UserDto userDto = dtoFactory.makeUserDto(user);
 
             String accessToken = jwtService.generateAccessToken(userId, nickname, role);
-            String refreshToken = jwtService.generateRefreshToken(userId, nickname, role);
+            String refreshToken = tokenService.getTokenByUserNickname(nickname);
 
             response.add(userDto);
             response.add(accessToken);
