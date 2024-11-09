@@ -9,14 +9,19 @@ import com.ahicode.factories.ProjectEntityFactory;
 import com.ahicode.factories.ProjectMemberEntityFactory;
 import com.ahicode.storage.entities.ProjectEntity;
 import com.ahicode.storage.entities.ProjectMemberEntity;
+import com.ahicode.storage.enums.ProjectRole;
 import com.ahicode.storage.repositories.ProjectMemberRepository;
 import com.ahicode.storage.repositories.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +30,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
 
+    private final ProjectDaoImpl projectDao;
+    private final JdbcTemplate jdbcTemplate;
     private final JwtServiceImpl jwtService;
     private final ProjectDtoFactory dtoFactory;
     private final ProjectEntityFactory entityFactory;
@@ -57,7 +64,7 @@ public class ProjectServiceImpl implements ProjectService {
     public List<ProjectMemberDto> getProjects(String token) {
         String nickname = jwtService.extractEmailFromAccessToken(token);
 
-        return List.of();
+        return projectDao.getProjectsByMember(nickname);
     }
 
     private void isProjectUniqueness(String projectKey) {

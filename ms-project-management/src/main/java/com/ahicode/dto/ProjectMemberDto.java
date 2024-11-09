@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -19,7 +20,7 @@ public class ProjectMemberDto {
     @JsonProperty("project_description")
     private String description;
     @JsonProperty("create_at")
-    private LocalDateTime createAt;
+    private OffsetDateTime createAt;
     @JsonProperty("nickname")
     private String userNick;
     private ProjectRole role;

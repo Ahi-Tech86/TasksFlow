@@ -1,8 +1,10 @@
 package com.ahicode.controllers;
 
+import com.ahicode.dto.MemberDto;
 import com.ahicode.dto.ProjectCreationRequest;
 import com.ahicode.dto.ProjectDto;
 import com.ahicode.dto.ProjectMemberDto;
+import com.ahicode.services.ProjectMemberServiceImpl;
 import com.ahicode.services.ProjectServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectServiceImpl service;
+    private final ProjectMemberServiceImpl memberService;
 
     @PostMapping("/create")
     public ResponseEntity<ProjectDto> createProject(
@@ -34,5 +37,12 @@ public class ProjectController {
             @CookieValue(value = "accessToken") String accessToken
     ) {
         return ResponseEntity.ok(service.getProjects(accessToken));
+    }
+
+    @GetMapping("/{id}/members")
+    public ResponseEntity<List<MemberDto>> getProjectMembers(
+            @PathVariable(name = "id") Long projectId
+    ) {
+        return ResponseEntity.ok(memberService.getProjectMembers(projectId));
     }
 }
